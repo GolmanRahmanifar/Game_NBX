@@ -77,7 +77,7 @@ main{padding:18px 22px 26px}
 .leader .stats b{display:block;font-size:26px}
 .leader .stats span{font-size:14px}
 .leader .cost{font-size:20px;font-weight:700}
-.charts{display:grid;grid-template-columns:1fr 1.3fr;gap:16px;margin-top:16px}
+.charts{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}
 .box{background:#fff;border:1px solid #b9cfee;border-radius:14px;overflow:hidden}
 .box h4{margin:0;background:linear-gradient(90deg,#0c57c4,#1e78e6);color:#fff;font-size:22px;padding:8px 16px}
 .legend{float:right;font-size:14px;font-weight:600}
@@ -2753,21 +2753,18 @@ function host(){
     var maxK=1,maxT=1;
     teams().forEach(function(n){if(subs[n]){maxK=Math.max(maxK,subs[n].km);maxT=Math.max(maxT,subs[n].trucks)}});
     function bw(val,pct,bg,color){return el('div',{class:'bw'},el('span',{style:'color:'+color},val),el('div',{class:'bar2',style:'height:'+pct+'%;background:'+bg}))}
-    var c1=el('div',{class:'chart'},teams().map(function(n){
-      var s=subs[n],c=COLORS[(n-1)%8];
-      return el('div',{class:'col'},el('div',{class:'plot'},bw((lead===n?'👑 ':'')+(s?fmt(s.km):'–'),s?Math.max(1,s.km/maxK*82):0,'linear-gradient('+c[0]+','+c[1]+')','#0d2547')),el('div',{class:'lbl'},'Team '+n));
-    }));
-    var c2=el('div',{class:'chart'},teams().map(function(n){
-      var s=subs[n];
-      return el('div',{class:'col'},el('div',{class:'plot'},
-        bw(s?fmt(s.trucks):'–',s?Math.max(1,s.trucks/maxT*82):0,'linear-gradient(#1e78e6,#0c47a6)','#0c47a6'),
-        bw(s?fmt(s.lf)+'%':'–',s?Math.max(1,s.lf*0.82):0,'linear-gradient(#ffb02e,#f57c00)','#c45a00')),el('div',{class:'lbl'},'Team '+n));
-    }));
+    function chart(val,pct){
+      return el('div',{class:'chart'},teams().map(function(n){
+        var s=subs[n],c=COLORS[(n-1)%8];
+        return el('div',{class:'col'},el('div',{class:'plot'},bw(s?val(s,n):'–',s?Math.max(1,pct(s)):0,'linear-gradient('+c[0]+','+c[1]+')','#0d2547')),el('div',{class:'lbl'},'Team '+n));
+      }));
+    }
+    function box(title,c){return el('div',{class:'box'},el('h4',null,title),c)}
     return [el('div',{class:'top'},cards,leader),
       el('div',{class:'charts'},
-        el('div',{class:'box'},el('h4',null,'📍 Total Distance (km) by Team'),c1),
-        el('div',{class:'box'},el('h4',null,'📦 Trucks Used & Average Load Factor (%) by Team',
-          el('span',{class:'legend'},el('i',{style:'background:#1e78e6'}),'Trucks Used',el('i',{style:'background:#f57c00'}),'Avg. Load Factor (%)')),c2))];
+        box('📍 Total Distance (km)',chart(function(s,n){return (lead===n?'👑 ':'')+fmt(s.km)},function(s){return s.km/maxK*82})),
+        box('🚚 Trucks Used',chart(function(s){return fmt(s.trucks)},function(s){return s.trucks/maxT*82})),
+        box('📦 Average Load Factor (%)',chart(function(s){return fmt(s.lf)+'%'},function(s){return s.lf*0.82})))];
   }
 
   update=function(){
