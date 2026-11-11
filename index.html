@@ -2439,7 +2439,9 @@ var RELAY        = 'https://ntfy.sh/';  // free public message relay (no account
 
 var GAME_MS = GAME_MINUTES*60000;
 var COLORS=[['#1e78e6','#0c47a6'],['#34b356','#1c7c37'],['#fb8c1a','#d95a00'],['#9a55e0','#5d2aa6'],['#e0457b','#a81650'],['#12a3a0','#0a6f6d'],['#8a6a4f','#5b4130'],['#5f7d95','#39505f']];
-var qs=new URLSearchParams(location.search);
+var qs=new URLSearchParams(location.hash.slice(1));
+if(!qs.get('team'))qs=new URLSearchParams(location.search);
+window.addEventListener('hashchange',function(){location.reload()});
 var myTeam=parseInt(qs.get('team'),10);
 var isPhone=myTeam>=1&&myTeam<=8;
 var app=document.getElementById('app');
@@ -2661,7 +2663,7 @@ function host(){
   function teams(){var a=[];for(var i=1;i<=nTeams;i++)a.push(i);return a}
   function base(){
     var b=ls('fnl_base');if(b)return b;
-    if(/^https?:$/.test(location.protocol))return location.origin+location.pathname;
+    if(/^https?:$/.test(location.protocol))return location.href.split('#')[0];
     return '';
   }
   function isLocal(u){return /^https?:\/\/(localhost|127\.|\[::1\])/i.test(u)}
@@ -2690,7 +2692,7 @@ function host(){
       el('div',{class:'row'},el('label',null,'Number of teams'),sel),
       el('div',null,el('label',null,'Phone address (where this file is online)'),
         el('div',{class:'row'},inp,
-          el('button',{onclick:function(){var v=inp.value.trim().split(/[?#]/)[0];if(v&&!/^https?:\/\//i.test(v))v='https://'+v;ls('fnl_base',v||null);inp.value=v;update()}},'Save')),
+          el('button',{onclick:function(){var v=inp.value.trim().split('#')[0];if(v&&!/^https?:\/\//i.test(v))v='https://'+v;ls('fnl_base',v||null);inp.value=v;update()}},'Save')),
         el('small',null,'Phones open this address when they scan a QR code. Leave empty if you already opened this page from an online address.')),
       el('div',{class:'row'},
         el('button',{class:'danger',onclick:function(){
@@ -2708,7 +2710,7 @@ function host(){
       if(!b)return out;
     }
     out.push(el('div',{class:'grid'},teams().map(function(n){
-      var url=b+'?team='+n+'&s='+session,q=qrcode(0,'M');q.addData(url);q.make();
+      var url=b+'#team='+n+'&s='+session,q=qrcode(0,'M');q.addData(url);q.make();
       var a=el('a',{class:'qr',href:url,target:'_blank',title:'Open the Team '+n+' form'});
       a.innerHTML=q.createSvgTag({cellSize:4,margin:2,scalable:true});
       return el('div',{class:'card',style:tvars(n)},el('div',{class:'head'},'👥 Team '+n),
